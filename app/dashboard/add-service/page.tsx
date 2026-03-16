@@ -29,7 +29,7 @@ const MODE_LABELS: Record<string, string> = {
 const MODE_FIELDS: Record<string, { label: string; placeholder: string }> = {
   instagram: { label: "Instagram Username *", placeholder: "eg: yourhandle" },
   whatsapp:  { label: "WhatsApp Number *",    placeholder: "eg: +91 9876543210" },
-  telegram:  { label: "Telegram Username *",  placeholder: "eg: @username" },
+  telegram:  { label: "Telegram Username *",  placeholder: "eg: @username or Number" },
 };
 
 export default function AddServicePage() {

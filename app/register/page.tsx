@@ -42,6 +42,7 @@ export default function RegisterPage() {
     action?: { label: string; href: string };
   } | null>(null);
 
+  
   useEffect(() => {
     async function loadPlans() {
       setPlansLoading(true);
@@ -104,6 +105,9 @@ export default function RegisterPage() {
     }
     if (!form.password || form.password.length < 6) return false;
     if (form.password !== form.confirmPassword) return false;
+    // Enforce exactly 10 digits for whatsapp and telegram
+    if ((mode === "whatsapp" || mode === "all") && form.whatsapp.length !== 10) return false;
+    if ((mode === "telegram" || mode === "all") && form.telegram.length !== 10) return false;
     return true;
   }, [form, requiredFields, planId, plansLoading, message]);
 
@@ -287,7 +291,7 @@ export default function RegisterPage() {
               <ModeButton active={mode === "telegram"} onClick={() => setMode("telegram")} icon={<FaTelegramPlane />}>
                 Telegram
               </ModeButton>
-              <ModeButton active={mode === "all"} onClick={() => setMode("all")} icon={<FaGlobe />}>
+              <ModeButton active={mode === "all"} onClick={() => setMode("all")} icon={<FaGlobe />} recommended>
                 All Three
               </ModeButton>
             </div>
@@ -331,6 +335,9 @@ export default function RegisterPage() {
                         <div className="text-sm text-white/65">{p.subtitle ?? ""}</div>
                         <div className="mt-1 text-xs text-white/55">
                           Join up to <span className="font-semibold text-white">{p.group_limit}</span> groups
+                        </div>
+                        <div className="mt-1.5 inline-flex items-center gap-1 text-xs text-emerald-400/80 font-medium">
+                          <span>+</span><span>Gmail included</span>
                         </div>
                       </div>
                       <div className={`text-lg font-bold ${active ? "text-blue-200" : "text-white"}`}>
@@ -444,23 +451,45 @@ export default function RegisterPage() {
 
               {(mode === "whatsapp" || mode === "all") && (
                 <Field label="WhatsApp Number *">
-                  <input
-                    value={form.whatsapp}
-                    onChange={(e) => updateField("whatsapp", e.target.value)}
-                    className="w-full rounded-2xl border border-white/10 bg-black/35 px-4 py-3 text-white placeholder:text-white/40 outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-white/15"
-                    placeholder="eg: +91 9876543210"
-                  />
+                  <div className="flex rounded-2xl border border-white/10 bg-black/35 overflow-hidden focus-within:ring-2 focus-within:ring-blue-500/50 focus-within:border-white/15">
+                    <span className="flex items-center px-3 text-white/50 text-sm border-r border-white/10 bg-white/5 select-none">+91</span>
+                    <input
+                      value={form.whatsapp}
+                      onChange={(e) => {
+                        const digits = e.target.value.replace(/\D/g, "").slice(0, 10);
+                        updateField("whatsapp", digits);
+                      }}
+                      inputMode="numeric"
+                      maxLength={10}
+                      className="flex-1 bg-transparent px-4 py-3 text-white placeholder:text-white/40 outline-none"
+                      placeholder="10-digit number"
+                    />
+                  </div>
+                  {form.whatsapp && form.whatsapp.length < 10 && (
+                    <p className="mt-1.5 text-xs text-red-400">{10 - form.whatsapp.length} more digit{10 - form.whatsapp.length !== 1 ? "s" : ""} needed</p>
+                  )}
                 </Field>
               )}
 
               {(mode === "telegram" || mode === "all") && (
-                <Field label="Telegram Username/Number *">
-                  <input
-                    value={form.telegram}
-                    onChange={(e) => updateField("telegram", e.target.value)}
-                    className="w-full rounded-2xl border border-white/10 bg-black/35 px-4 py-3 text-white placeholder:text-white/40 outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-white/15"
-                    placeholder="eg: @username or number"
-                  />
+                <Field label="Telegram Number *">
+                  <div className="flex rounded-2xl border border-white/10 bg-black/35 overflow-hidden focus-within:ring-2 focus-within:ring-blue-500/50 focus-within:border-white/15">
+                    <span className="flex items-center px-3 text-white/50 text-sm border-r border-white/10 bg-white/5 select-none">+91</span>
+                    <input
+                      value={form.telegram}
+                      onChange={(e) => {
+                        const digits = e.target.value.replace(/\D/g, "").slice(0, 10);
+                        updateField("telegram", digits);
+                      }}
+                      inputMode="numeric"
+                      maxLength={10}
+                      className="flex-1 bg-transparent px-4 py-3 text-white placeholder:text-white/40 outline-none"
+                      placeholder="10-digit number"
+                    />
+                  </div>
+                  {form.telegram && form.telegram.length < 10 && (
+                    <p className="mt-1.5 text-xs text-red-400">{10 - form.telegram.length} more digit{10 - form.telegram.length !== 1 ? "s" : ""} needed</p>
+                  )}
                 </Field>
               )}
 
@@ -527,25 +556,35 @@ export default function RegisterPage() {
 }
 
 function ModeButton({
-  active, onClick, children, icon,
+  active, onClick, children, icon, recommended,
 }: {
   active: boolean;
   onClick: () => void;
   children: React.ReactNode;
   icon: React.ReactNode;
+  recommended?: boolean;
 }) {
   return (
     <button
       onClick={onClick}
-      className={`rounded-2xl border px-4 py-3 text-sm font-medium transition flex items-center justify-center gap-2 outline-none focus:ring-2 focus:ring-white/10 ${
+      className={`relative rounded-2xl border px-4 py-3 text-sm font-medium transition flex flex-col items-center justify-center gap-1.5 outline-none focus:ring-2 focus:ring-white/10 ${
         active
           ? "border-blue-500/40 bg-blue-500/10 text-blue-200"
+          : recommended
+          ? "border-amber-500/30 bg-amber-500/5 hover:bg-amber-500/10 text-white/80"
           : "border-white/10 bg-black/35 hover:bg-black/55 text-white/80"
       }`}
       type="button"
     >
-      <span className="text-lg leading-none">{icon}</span>
-      <span>{children}</span>
+      {recommended && (
+        <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 text-[10px] font-semibold px-2 py-0.5 rounded-full border border-amber-500/40 bg-amber-500/10 text-amber-400 whitespace-nowrap tracking-wide">
+          ✦ Recommended
+        </span>
+      )}
+      <span className="flex items-center gap-2">
+        <span className="text-lg leading-none">{icon}</span>
+        <span>{children}</span>
+      </span>
     </button>
   );
 }

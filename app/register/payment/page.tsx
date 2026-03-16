@@ -61,12 +61,14 @@ export default function PaymentPage() {
       if (!subId) {
         const networkMode = draft?.mode || "instagram";
 
-        // First: look for pending subscription
+        // First: look for pending subscription — filter by network_mode
+        // to avoid grabbing the wrong network's subscription row
         const { data: pendingSub } = await supabase
           .from("subscriptions")
           .select("id")
           .eq("profile_id", profileId)
           .eq("status", "pending")
+          .eq("network_mode", networkMode)
           .order("created_at", { ascending: false })
           .limit(1)
           .maybeSingle();
